@@ -11,6 +11,11 @@ public class Bank
         Clients = new List<Client>();
         Loans = new List<Loan>();
     }
+    public Bank()
+    {
+
+    }
+
 
     #region Client methods
 
@@ -34,16 +39,28 @@ public class Bank
     }
 
     public Client SearchClient(string name, string surname)
+    {
+        foreach (Client client in Clients)
         {
-            foreach (Client client in Clients)
+            if (client.Name == name && client.Surname == surname)
             {
-                if (client.Name == name && client.Surname == surname)
-                {
-                    return client;
-                }
+                return client;
             }
-            return null;
         }
+        return null;
+    }
+
+    public Client SearchClientByFiscalCode(string fiscalCode)
+    {
+        foreach (Client client in Clients)
+        {
+            if (client.FiscalCode == fiscalCode)
+            {
+                return client;
+            }
+        }
+        return null;
+    }
 
     #endregion
 
@@ -60,6 +77,37 @@ public class Bank
             }
         }
         return userLoans;
+    }
+
+    public void LoansPush(Loan newloan)
+    {
+        Loans.Add(newloan);
+    }
+
+    public int TotalInstallmentLeftToPay(List<Loan> userLoan)
+    {
+        int installmentLeftToPay = 0;
+        foreach (Loan loan in userLoan)
+        {
+            installmentLeftToPay = installmentLeftToPay + ((loan.LoanEnd.Year - loan.LoanStart.Year) * 12) + loan.LoanEnd.Month - loan.LoanStart.Month;
+        }
+        return installmentLeftToPay;
+    }
+    public int InstallmentLeftToPay(DateTime LoanStart, DateTime LoanEnd)
+    {
+        int installmentLeftToPay = 0;
+        installmentLeftToPay = installmentLeftToPay + ((LoanEnd.Year - LoanStart.Year) * 12) + LoanEnd.Month - LoanStart.Month;
+        return installmentLeftToPay;
+    }
+
+    public int TotalToPay(List<Loan> userLoan)
+    {
+        int loanSum = 0;
+        foreach (Loan loan in userLoan)
+        {
+            loanSum += loan.Total;
+        }
+        return loanSum;
     }
 
     #endregion

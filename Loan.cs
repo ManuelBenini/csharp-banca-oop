@@ -1,29 +1,29 @@
-﻿
-public class Loan
+﻿public class Loan
 {
-    private int lastId = 0;
+    public static int lastId = 1;
     public int ID { get; set; }
     public Client Client { get; set; }
-    public int Total { get; set; }
-    public int Installment { get; set; }
+    public double Total { get; set; }
+    public double Installment { get; set; }
     public DateTime LoanStart { get; set; }
     public DateTime LoanEnd { get; set; }
 
-    public Loan(Client client, int total, DateTime loanStart, DateTime loanEnd)
+    public Loan(Client client, double total, DateTime loanStart, DateTime loanEnd)
     {
-        lastId = ID;
-        ID = lastId++;
+        ID = Loan.lastId++;
         Client = client;
         Total = total;
-        Installment = Total / new Bank().InstallmentLeftToPay(loanStart, loanEnd);
+        Installment = Total / Loan.MonthsDifferenceBetweenDates(LoanEnd, LoanStart); // L'importo della rata è uguale all'importo totale diviso il numero di rate
         LoanStart = loanStart;
         LoanEnd = loanEnd;
     }
 
-    public Loan()
+    //Metodo che restituisce i mesi di distanza tra due date, servirà ad ottenere il numero di rate del prestito e delle rate rimanenti dalla data attuale
+    public static int MonthsDifferenceBetweenDates(DateTime dateEnd, DateTime dateStart)
     {
+        int months;
+
+        return months = ((dateEnd.Year - dateStart.Year) * 12) + (dateEnd.Month - dateStart.Month);
 
     }
-
-    
 }

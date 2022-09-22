@@ -1,226 +1,176 @@
-﻿
-using System.Linq.Expressions;
+﻿Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 Console.WriteLine("Benvenuto/a! Inserire il nome della banca: ");
 Bank bank = new Bank(Console.ReadLine());
 
+#region Menù principale
 Menu:
-Console.WriteLine($"Bentornato alla banca {bank.Name}, Si desidera: " +
-    "Cercare un cliente(0), Aggiungere un cliente(1), ottenere informazioni sui prestiti(2), Visualizzare ogni cliente ed i suoi prestiti(3)");
+Console.WriteLine($"Bentornato/a nella banca {bank.Name}! Azioni:");
+Console.WriteLine("1. Cerca Utente");
+Console.WriteLine("2. Aggiungi Utente");
+Console.WriteLine("3. Cerca Prestito");
+Console.WriteLine("4. Aggiungi Prestito");
+Console.WriteLine("5. Lista di tutti gli utenti");
+#endregion
 
-switch (Convert.ToInt32(Console.ReadLine()) )
+Client foundedClient = new Client();
+switch (Convert.ToInt32(Console.ReadLine()))
 {
-    #region Ricerca cliente
-    case 0:
-        SearchingClient:
-        Console.WriteLine("Inserire nome utente: ");
-        string clientName = Console.ReadLine();
+    
+	case 1:
+    #region Ricerca utente
+    ClientSearch:
+        Console.WriteLine("Inserisci codice fiscale utente");
+        Client.FoundedFiscalCode = Console.ReadLine();
 
-        Console.WriteLine("Inserire cognome utente: ");
-        string clientSurname = Console.ReadLine();
-        Client foundedClient = bank.SearchClient(clientName, clientSurname);
-        
-        Console.WriteLine($"Ecco i dati riepilogativi del cliente {foundedClient.Name} {foundedClient.Surname}:");
+        foundedClient = bank.GetClient(Client.FoundedFiscalCode);
 
-        Console.WriteLine($"Codice fiscale: {foundedClient.FiscalCode}");
-        Console.WriteLine($"Salario: {foundedClient.Salary}");
-
-        Console.WriteLine($"Modificare i dati del cliente(0), Ottenere i dettagli dei suoi prestiti(1), Tornare al menù(2)");
-
-        switch (Convert.ToInt32(Console.ReadLine()))
+        if(foundedClient != null)
         {
-            #region Modifica cliente
-            case 0:
-                bool isChangesAccepted = false;
-                Client modifiedClient = new Client();
-                do
-                {
-                    Console.WriteLine("Inserire nuovo nome: ");
-                    string newClientName = Console.ReadLine();
-
-                    Console.WriteLine("Inserire nuovo cognome: ");
-                    string newClientSurname = Console.ReadLine();
-
-                    Console.WriteLine("Inserire nuovo codice fiscale: ");
-                    string newClientFiscalCode = Console.ReadLine();
-
-                    Console.WriteLine("Inserire nuovo salario: ");
-                    int newClientSalary = Convert.ToInt32(Console.ReadLine());
-
-                    Console.WriteLine("Ecco i nuovi dati inseriti:");
-
-                    Console.WriteLine($"Nome: {newClientName}");
-                    Console.WriteLine($"Cognome: {newClientSurname}");
-                    Console.WriteLine($"Codice fiscale: {newClientFiscalCode}");
-                    Console.WriteLine($"Salario: {newClientSalary}");
-
-                    Console.WriteLine("Conferma le modifiche? Si(1) No(0)");
-                    switch (Convert.ToInt32(Console.ReadLine()))
-                    {
-                        case 1:
-                            isChangesAccepted = true;
-                            modifiedClient = new Client(newClientName, newClientSurname, newClientFiscalCode, newClientSalary);
-                            break;
-                        default:
-                            isChangesAccepted = false;
-                            break;
-                    }
-                } while (!isChangesAccepted);
-
-                bank.ModifyClient(foundedClient, modifiedClient);
-
-                goto SearchingClient;
-            #endregion
-
-            #region Dettagli prestiti cliente
-            case 1:
-
-            goto AddLoan;
-                
-            #endregion
-
-            #region Ritorno al menù
-            default:
-                goto Menu;
-            #endregion
+            bank.Print(foundedClient);
         }
-    #endregion
-
-    #region Aggiungere cliente
-
-    case 1:
-        AddClient:
-        bool isAccountAccepted = false;
-        Client newClient = new Client();
-        do
+        else
         {
-            Console.WriteLine("Inserire nome: ");
-            string ClientName = Console.ReadLine();
-
-            Console.WriteLine("Inserire cognome: ");
-            string ClientSurname = Console.ReadLine();
-
-            Console.WriteLine("Inserire codice fiscale: ");
-            string ClientFiscalCode = Console.ReadLine();
-
-            Console.WriteLine("Inserire salario: ");
-            int ClientSalary = Convert.ToInt32(Console.ReadLine());
-
-            Console.WriteLine("Ecco i dati inseriti:");
-
-            Console.WriteLine($"Nome: {ClientName}");
-            Console.WriteLine($"Cognome: {ClientSurname}");
-            Console.WriteLine($"Codice fiscale: {ClientFiscalCode}");
-            Console.WriteLine($"Salario: {ClientSalary}");
-
-            Console.WriteLine("Crea cliente? Si(1) No(0)");
-            switch (Convert.ToInt32(Console.ReadLine()))
-            {
-                case 1:
-                    isAccountAccepted = true;
-                    newClient = new Client(ClientName, ClientSurname, ClientFiscalCode, ClientSalary);
-                    break;
-                default:
-                    isAccountAccepted = false;
-                    break;
-            }
-        } while (!isAccountAccepted);
-
-        bank.ClientPush(newClient);
-
-        goto SearchingClient;
-    #endregion
-
-    #region Aggiungere prestito
-    case 2:
-        AddLoan:
-        Console.WriteLine("Inserire codice fiscale utente: ");
-
-        Client addLoanfoundedClient = bank.SearchClientByFiscalCode(Console.ReadLine());
-
-        List<Loan> userLoans = bank.GetLoansOfUser(addLoanfoundedClient.FiscalCode);
-
-        if (userLoans != null)
-        {
-            Console.WriteLine($"Prestiti totali del cliente: {userLoans.Count}");
-
-            Console.WriteLine($"Ammontare totale dei prestiti del cliente: {bank.TotalToPay(userLoans)}");
-
-            Console.WriteLine($"Numero totale di rate ancora da pagare: {bank.TotalInstallmentLeftToPay(userLoans)}");
-
-            Console.WriteLine($"Tutti i prestiti nei dettagli: ");
-
-            foreach (Loan loan in userLoans)
-            {
-                Console.WriteLine("-------------------");
-                Console.WriteLine($"ID: {loan.ID}");
-                Console.WriteLine($"Totale: {loan.Total}");
-                Console.WriteLine($"Prezzo rata: {loan.Installment}");
-                Console.WriteLine($"Data inizio: {loan.LoanStart}");
-                Console.WriteLine($"Data fine: {loan.LoanEnd}");
-            }
-
-            Console.WriteLine("Aggiungere un prestito(0), tornare al menù(1), profilo utente(2)");
+            Console.WriteLine("Nessun cliente trovato. Torna al Menù(1) Effettua una nuova ricerca(2)");
 
             switch (Convert.ToInt32(Console.ReadLine()))
             {
-                case 0:
-                    LoanPush(addLoanfoundedClient);
-                    goto AddLoan;
-
                 case 1:
                     goto Menu;
                 default:
-                    goto SearchingClient;
+                    goto ClientSearch;
+            }
+        }
+
+        
+        ClientAction:
+        Console.WriteLine("Azioni:");
+        Console.WriteLine("1. Modifica utente");
+        Console.WriteLine("2. Vedi prestiti utente");
+        Console.WriteLine("3. Aggiungi prestito");
+        Console.WriteLine("4. Torna al menù");
+
+        switch (Convert.ToInt32(Console.ReadLine()))
+        {
+            case 1:
+                #region Modifica utente
+                Console.WriteLine(Client.FoundedFiscalCode);
+                foundedClient = bank.GetClient(Client.FoundedFiscalCode);
+                Client modifiedClient = bank.ClientFiller();
+                bank.ModifyClient(foundedClient, modifiedClient);
+                Client.FoundedFiscalCode = modifiedClient.FiscalCode;
+                goto ClientAction;
+                #endregion
+            case 2:
+                #region Vedi prestiti utente
+                foundedClient = bank.GetClient(Client.FoundedFiscalCode);
+                List<Loan> searchedClientLoans = bank.GetClientLoans(foundedClient.FiscalCode);
+
+                bank.Print(searchedClientLoans);
+
+                Console.WriteLine("1. Aggiungi prestito");
+                Console.WriteLine("2. Torna al menù");
+
+                switch (Convert.ToInt32(Console.ReadLine()))
+                {
+                    case 1:
+                        foundedClient = bank.GetClient(Client.FoundedFiscalCode);
+                        Loan newLoan = bank.LoanFiller(foundedClient);
+                        bank.LoanAdd(newLoan);
+                        goto loanOptions;
+                    default:
+                        goto Menu;
+                }
+            #endregion
+            case 3:
+                #region Aggiungi prestito
+                foundedClient = bank.GetClient(Client.FoundedFiscalCode);
+                Loan newLoanToClient = bank.LoanFiller(foundedClient);
+                bank.LoanAdd(newLoanToClient);
+                goto loanOptions;
+                #endregion
+            default:
+                #region Torna al menù
+                goto Menu;
+                #endregion
+        }
+    #endregion
+
+    case 2:
+    #region Aggiungi utente
+        Client newClient = bank.ClientFiller();
+
+        bank.ClientAdd(newClient);
+
+        Client.FoundedFiscalCode = newClient.FiscalCode;
+
+        bank.Print(newClient);
+
+        goto ClientAction;
+    #endregion
+
+    case 3:
+    #region Cerca prestito
+        Console.WriteLine("Inserisci codice fiscale utente");
+
+        foundedClient = bank.GetClient(Console.ReadLine());
+
+        List <Loan> clientLoans = bank.GetClientLoans(foundedClient.FiscalCode);
+
+        bank.Print(clientLoans);
+
+        loanOptions:
+        Console.WriteLine("1. Aggiungi prestito:");
+        Console.WriteLine("2. Torna al menù");
+
+        switch (Convert.ToInt32(Console.ReadLine()))
+        {
+            case 1:
+                #region Aggiungi prestito
+                Loan newLoan = bank.LoanFiller(foundedClient);
+                bank.LoanAdd(newLoan);
+                goto loanOptions;
+                #endregion
+            default:
+                #region Torna al menù
+                goto Menu;
+                #endregion
+        }
+    #endregion
+
+    case 4:
+    #region Aggiungi prestito
+        Console.WriteLine("Inserisci codice fiscale utente");
+
+        foundedClient = bank.GetClient(Console.ReadLine());
+
+        Loan LoanToClient = bank.LoanFiller(foundedClient);
+
+        bank.LoanAdd(LoanToClient);
+
+        goto loanOptions;
+    #endregion
+
+    default:
+    #region Visualizza tutti i clienti
+        if(bank.Clients.Count != 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|", "Nome", "Cognome", "Codice Fiscale", "Stipendio"));
+            Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|", "", "", "", " "));
+
+            foreach (Client client in bank.Clients)
+            {
+                Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|", client.Name, client.Surname, client.FiscalCode, client.Salary));
+
+                Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|", "", "", "", " "));
             }
         }
         else
         {
-            Console.WriteLine("Il cliente non ha nessun prestito.");
-
-            Console.WriteLine("Aggiungere un prestito(0), tornare al menù(1)");
-
-            switch (Convert.ToInt32(Console.ReadLine()))
-            {
-                case 0:
-                    LoanPush(addLoanfoundedClient);
-                    goto AddLoan;
-
-                default:
-                    goto Menu;
-            }
+            Console.WriteLine("Questa banca non ha clienti.");
         }
-    #endregion
-
-    default:
-        foreach (Client client in bank.Clients)
-        {
-            Console.Write(String.Format("|{0,5}|", "cliente"));
-            foreach (Loan loan in bank.Loans)
-            {
-                if(loan.Client == client)
-                {
-                    Console.Write(String.Format("|{0,5}|", "Prestiti"));
-                }
-                Console.WriteLine("=========");
-            }
-        }
-       
-       
-       break;
-}
-
-
-void LoanPush(Client foundedClient)
-{
-    Console.WriteLine("Inserire ammontare totale: ");
-    int totalLoan = Convert.ToInt32(Console.ReadLine());
-
-    Console.WriteLine("Inserire data inizio: ");
-    DateTime loanStart = Convert.ToDateTime(Console.ReadLine());
-
-    Console.WriteLine("Inserire data fine: ");
-    DateTime loanEnd = Convert.ToDateTime(Console.ReadLine());
-
-    bank.LoansPush(new Loan(foundedClient, totalLoan, loanStart, loanEnd));
+        Console.WriteLine();
+        goto Menu;
+        #endregion
 }

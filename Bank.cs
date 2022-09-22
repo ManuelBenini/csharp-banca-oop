@@ -1,9 +1,10 @@
 ﻿
+
 public class Bank
 {
     public string Name { get; set; }
-    public List<Client> Clients { get; set; }
-    public List<Loan> Loans { get; set; }
+    public List<Client> Clients { get;}
+    public List<Loan> Loans { get;}
 
     public Bank(string name)
     {
@@ -11,50 +12,41 @@ public class Bank
         Clients = new List<Client>();
         Loans = new List<Loan>();
     }
-    public Bank()
-    {
 
-    }
-
-
-    #region Client methods
-
-    public void ClientPush(Client client)
+    #region Client Methods
+    public void ClientAdd(Client client)
     {
         Clients.Add(client);
+
+        Console.WriteLine($"Cliente {client.Name} {client.Surname} creato con successo!");
     }
 
-    public void ModifyClient(Client clientToModify, Client modifiedClient)
+    //Metodo che restituisce un Cliente con i tutti i campi compilati dall'utente
+    public Client ClientFiller()
     {
-        int indexofClient = 0;
-        foreach (Client client in Clients)
-        {
-            if (client == clientToModify)
-            {
-                indexofClient = Clients.IndexOf(client);
-            }
-        }
+        Console.WriteLine("Inserire nome:");
+        string newClientName = Console.ReadLine();
 
-        Clients[indexofClient] = modifiedClient;
+        Console.WriteLine("Inserire cognome:");
+        string newClientSurname = Console.ReadLine();
+
+        Console.WriteLine("Inserire codice fiscale:");
+        string newClientFiscalCode = Console.ReadLine();
+
+        Console.WriteLine("Inserire stipendio:");
+        double newClientSalary = Convert.ToDouble(Console.ReadLine());
+
+        Client newClient = new Client(newClientName, newClientSurname, newClientFiscalCode, newClientSalary);
+
+        return newClient;
     }
 
-    public Client SearchClient(string name, string surname)
-    {
-        foreach (Client client in Clients)
-        {
-            if (client.Name == name && client.Surname == surname)
-            {
-                return client;
-            }
-        }
-        return null;
-    }
-
-    public Client SearchClientByFiscalCode(string fiscalCode)
+    //Ricerca cliente per corrispondenza codisce fiscale
+    public Client GetClient(string fiscalCode)
     {
         foreach (Client client in Clients)
         {
-            if (client.FiscalCode == fiscalCode)
+            if (client.FiscalCode.ToLower().Contains(fiscalCode.ToLower()))
             {
                 return client;
             }
@@ -62,53 +54,107 @@ public class Bank
         return null;
     }
 
+    //Metodo che modifica un cliente preesistente con delle informazioni aggiornate scelte dall'utente
+    public void ModifyClient(Client oldClient , Client newClient)
+    {
+        Console.WriteLine(Clients.Count);
+        Clients[Clients.IndexOf(oldClient)] = newClient;
+
+        foreach (Loan loan in Loans)
+        {
+            if(loan.Client == oldClient)
+            {
+                loan.Client = newClient;
+            }
+        }
+    }
+
+    //Metodo che stampa in pagina tutti i dati di un cliente
+    public void Print(Client client)
+    {
+        Console.WriteLine($"Nome {client.Name}");
+        Console.WriteLine($"Cognome {client.Surname}");
+        Console.WriteLine($"Codice Fiscale: {client.FiscalCode}");
+        Console.WriteLine($"Stipendio: {client.Salary}");
+    }
     #endregion
 
-    #region Loan methods
-
-    public List<Loan> GetLoansOfUser(string fiscalCode)
+    #region Loan Methods
+    public void LoanAdd(Loan loan)
     {
-        List<Loan> userLoans = new List<Loan>();
-        foreach(Loan loan in Loans)
+        Loans.Add(loan);
+
+        Console.WriteLine($"Prestito aggiunto con successo al cliente {loan.Client.Name} {loan.Client.Surname}!");
+    }
+
+    //Metodo che restituisce un Prestito con i tutti i campi compilati dall'utente
+    public Loan LoanFiller(Client client)
+    {
+        Console.WriteLine("Inserire totale prestito");
+        double loanSum = Convert.ToDouble(Console.ReadLine());
+
+        Console.WriteLine("Inserire data di sottoscrizione");
+        DateTime loanStart = Convert.ToDateTime(Console.ReadLine());
+
+        Console.WriteLine("Inserire data di scadenza del prestito");
+        DateTime loanEnd = Convert.ToDateTime(Console.ReadLine());
+
+        Loan loan = new Loan(client, loanSum, loanStart, loanEnd);
+
+        return loan;
+    }
+
+    //Metodo che restituisce tutti i prestiti di un utente
+    public List<Loan> GetClientLoans(string fiscalCode)
+    {
+        List<Loan> clientLoans = new List<Loan>();
+        foreach (Loan loan in Loans)
         {
             if (loan.Client.FiscalCode == fiscalCode)
             {
-                userLoans.Add(loan);
+                clientLoans.Add(loan);
             }
         }
-        return userLoans;
+        return clientLoans;
     }
 
-    public void LoansPush(Loan newloan)
+    //Metodo che restituisce il Totale dei prestiti
+    public double GetTotalUserLoans(string fiscalCode)
     {
-        Loans.Add(newloan);
-    }
-
-    public int TotalInstallmentLeftToPay(List<Loan> userLoan)
-    {
-        int installmentLeftToPay = 0;
-        foreach (Loan loan in userLoan)
+        double total = 0;
+        foreach (Loan loan in Loans)
         {
-            installmentLeftToPay = installmentLeftToPay + ((loan.LoanEnd.Year - loan.LoanStart.Year) * 12) + loan.LoanEnd.Month - loan.LoanStart.Month;
+            if (loan.Client.FiscalCode == fiscalCode)
+            {
+                total += loan.Total;
+            }
         }
-        return installmentLeftToPay;
-    }
-    public int InstallmentLeftToPay(DateTime LoanStart, DateTime LoanEnd)
-    {
-        int installmentLeftToPay = 0;
-        installmentLeftToPay = installmentLeftToPay + ((LoanEnd.Year - LoanStart.Year) * 12) + LoanEnd.Month - LoanStart.Month;
-        return installmentLeftToPay;
+        return total;
     }
 
-    public int TotalToPay(List<Loan> userLoan)
+    //Metodo che stampa in pagina, in forma tabellare, tutti i prestiti di un utente
+    public void Print(List<Loan> loans)
     {
-        int loanSum = 0;
-        foreach (Loan loan in userLoan)
+        if (loans.Count != 0)
         {
-            loanSum += loan.Total;
-        }
-        return loanSum;
-    }
+            Console.WriteLine($"Il cliente {loans[0].Client.Name} {loans[0].Client.Surname} ha {loans.Count} prestiti, per un totale di {GetTotalUserLoans(loans[0].Client.FiscalCode)}€  che sono: ");
 
+            Console.WriteLine();
+            Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|{4,25}|{5,15}|", "ID", "Importo", "Rata", "rate rimaste", "Data sottoscrizione", "Data scadenza"));
+            Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|{4,25}|{5,15}|", "", "", "", " ", " ", " "));
+
+            foreach (Loan loan in loans)
+            {
+                Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|{4,25}|{5,15}|", loan.ID, loan.Total, Loan.MonthsDifferenceBetweenDates(loan.LoanEnd, loan.LoanStart),
+                Loan.MonthsDifferenceBetweenDates(loan.LoanEnd, DateTime.Now), loan.LoanStart.ToShortDateString(), loan.LoanEnd.ToShortDateString()));
+
+                Console.WriteLine(String.Format("|{0,15}|{1,15}|{2,15}|{3,15}|{4,25}|{5,15}|", "", "", "", " ", " ", " "));
+            }
+        }
+        else
+        {
+            Console.WriteLine("Il cliente non ha prestiti");
+        }
+    }
     #endregion
 }
